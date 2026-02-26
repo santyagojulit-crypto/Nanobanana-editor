@@ -41,17 +41,4 @@ export default async function handler(req, res) {
       error: error.message || "Internal Server Error",
     });
   }
-
-  const response = await fetch("/api/gemini", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    prompt: "Decí solamente FUNCIONA",
-  }),
-});
-
-const data = await response.json();
-console.log(data);
 }
