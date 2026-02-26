@@ -36,7 +36,16 @@ export default function App() {
     setError(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      const response = await fetch("/api/gemini", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ prompt: "Escribí acá lo que quieras enviar" }),
+});
+
+const data = await response.json();
+console.log(data.text);
       
       // Extract base64 data and mime type
       const base64Data = image.split(',')[1];
