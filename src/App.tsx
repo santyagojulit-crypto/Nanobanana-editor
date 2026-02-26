@@ -51,43 +51,12 @@ const processImage = async () => {
       setError(data.error || "No image returned from Gemini.");
     }
 
-  } catch (err: any) {
+  } catch (err) {
     setError("Error processing image.");
   } finally {
     setIsProcessing(false);
   }
 };
-    try {
-      const response = await fetch("/api/gemini", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt,
-          image, // enviamos imagen + prompt al backend
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Server error");
-      }
-
-      const data = await response.json();
-
-      if (data.image) {
-        setResultImage(data.image);
-      } else {
-        setError("No image returned from Gemini.");
-      }
-
-    } catch (err: any) {
-      console.error("Error processing image:", err);
-      setError(err.message || "An error occurred while processing the image.");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[#f5f5f4] text-[#1a1a1a] font-sans p-4 md:p-8">
