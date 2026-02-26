@@ -20,7 +20,9 @@ export default async function handler(req, res) {
     const mimeType = image.split(";")[0].split(":")[1];
 
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      // 🔥 MODELO DE IMAGEN (IMPORTANTE)
+      model: "gemini-1.5-flash-image",
+
       contents: [
         {
           role: "user",
@@ -37,6 +39,11 @@ export default async function handler(req, res) {
           ],
         },
       ],
+
+      // 🔥 LE DECIMOS QUE QUEREMOS IMAGEN
+      generationConfig: {
+        responseModalities: ["IMAGE"],
+      },
     });
 
     const parts = response.candidates?.[0]?.content?.parts;
@@ -45,17 +52,17 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "No response from Gemini" });
     }
 
-    for (const part of parts) {
-      if (part.inlineData) {
-        return res.status(200).json({
-          image: `data:image/png;base64,${part.inlineData.data}`,
-        });
-      }
+    const imagePart = parts.find((part) => part.inlineData);
+
+    if (!imagePart) {
+      return res.status(500).json({
+        error: "Gemini did not return an image",
+        raw: response,
+      });
     }
 
-    return res.status(500).json({
-      error: "Gemini did not return an image",
-      raw: response,
+    return res.status(200).json({
+      image: `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`,
     });
 
   } catch (error) {
