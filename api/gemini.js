@@ -1,65 +1,57 @@
-import { GoogleGenAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   try {
-    const { image, prompt } = req.body;
-
-    const ai = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-    });
-
-    const base64Data = image.split(",")[1];
-    const mimeType = image.split(";")[0].split(":")[1];
-
-    const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              inlineData: {
-                mimeType,
-                data: base64Data,
-              },
-            },
-            { text: prompt },
-          ],
-        },
-      ],
-    });
-
-    console.log("RESPUESTA COMPLETA:");
-    console.log(JSON.stringify(response, null, 2));
-
-    const parts = response.candidates?.[0]?.content?.parts;
-
-    if (!parts) {
+    if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({
-        error: "No response from Gemini",
-        raw: response,
+        error: "GEMINI_API_KEY not configured",
       });
     }
 
-    // ⚠️ 1.5 puede devolver TEXTO en vez de imagen
-    const imagePart = parts.find(p => p.inlineData);
+    const { prompt } = req.body;
 
-    if (imagePart) {
-      return res.status(200).json({
-        image: `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`,
+    if (!prompt) {
+      return res.status(400).json({
+        error: "Missing prompt",
       });
     }
 
-    const textPart = parts.find(p => p.text);
+    const genAI = new GoogleGenerativeAI(
+      process.env.GEMINI_API_KEY
+    );
 
-    return res.status(200).json({
-      text: textPart?.text || "No image returned",
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
     });
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    return res.status(200).json({ text });
 
   } catch (error) {
     console.error("Gemini error:", error);
+
     return res.status(500).json({
-      error: error.message,
+      error: error.message || "Internal Server Error",
     });
   }
+
+  const response = await fetch("/api/gemini", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    prompt: "Decí solamente FUNCIONA",
+  }),
+});
+
+const data = await response.json();
+console.log(data);
 }
