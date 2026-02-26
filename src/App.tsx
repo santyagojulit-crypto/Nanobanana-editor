@@ -28,7 +28,7 @@ export default function App() {
     }
   };
 
-  const processImage = async () => {
+const processImage = async () => {
   if (!image || !prompt) return;
 
   setIsProcessing(true);
