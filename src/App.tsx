@@ -5,7 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Upload, Wand2, Loader2, Image as ImageIcon, AlertCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function App() {
   const [image, setImage] = useState<string | null>(null);
@@ -29,11 +29,34 @@ export default function App() {
   };
 
   const processImage = async () => {
-    if (!image || !prompt) return;
+  if (!image || !prompt) return;
 
-    setIsProcessing(true);
-    setError(null);
+  setIsProcessing(true);
+  setError(null);
 
+  try {
+    const apiResponse = await fetch("/api/gemini", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ image, prompt }),
+    });
+
+    const data = await apiResponse.json();
+
+    if (data.image) {
+      setResultImage(data.image);
+    } else {
+      setError(data.error || "No image returned from Gemini.");
+    }
+
+  } catch (err: any) {
+    setError("Error processing image.");
+  } finally {
+    setIsProcessing(false);
+  }
+};
     try {
       const response = await fetch("/api/gemini", {
         method: "POST",
