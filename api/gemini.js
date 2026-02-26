@@ -20,31 +20,27 @@ export default async function handler(req, res) {
     const mimeType = image.split(";")[0].split(":")[1];
 
     const response = await ai.models.generateContent({
-      // 🔥 MODELO DE IMAGEN (IMPORTANTE)
-      model: "gemini-1.5-flash-image",
-
-      contents: [
+  model: "gemini-2.5-flash",
+  contents: [
+    {
+      role: "user",
+      parts: [
         {
-          role: "user",
-          parts: [
-            {
-              inlineData: {
-                mimeType: mimeType,
-                data: base64Data,
-              },
-            },
-            {
-              text: prompt,
-            },
-          ],
+          inlineData: {
+            mimeType,
+            data: base64Data,
+          },
+        },
+        {
+          text: prompt,
         },
       ],
-
-      // 🔥 LE DECIMOS QUE QUEREMOS IMAGEN
-      generationConfig: {
-        responseModalities: ["IMAGE"],
-      },
-    });
+    },
+  ],
+  generationConfig: {
+    responseModalities: ["IMAGE"],
+  },
+});
 
     const parts = response.candidates?.[0]?.content?.parts;
 
